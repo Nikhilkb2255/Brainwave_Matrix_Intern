@@ -3,37 +3,36 @@ import requests
 from urllib.parse import urlparse
 
 def is_suspicious_url(url):
-    # Check if the URL is IP-based (e.g., http://192.168.1.1)
+    # Checking if the URL is IP-based
     ip_pattern = re.compile(r'http[s]?://(\d{1,3}\.){3}\d{1,3}')
     if ip_pattern.match(url):
-        return True  # If it matches, mark as suspicious
+        return True
     
-    # Define some keywords commonly found in phishing URLs
+    # Common keywords found in phishing URLs
     suspicious_keywords = ['login', 'verify', 'secure', 'account']
     
-    # Break down the URL into parts (domain, path, etc.)
+    # Breaking down the URL into parts (domain, path, etc.)
     parsed_url = urlparse(url)
     
-    # Check for keywords in the domain or path
+    # Checking for keywords in the domain or path
     for keyword in suspicious_keywords:
         if keyword in parsed_url.netloc or keyword in parsed_url.path:
-            return True  # Suspicious if keyword is found
+            return True  
 
-    # Check if URL is unusually long
-    if len(url) > 75:  # If length is greater than 75 characters
+    # Checking if URL is unusually long
+    if len(url) > 75: 
         return True
 
-    return False  # If none of the above, it’s not suspicious
+    return False 
 
-# Store your VirusTotal API key here
-API_KEY = "95a364d9897702f78d23b1f2c429fe4f264a136d07312f191e90d8cbfb021f8e"  # Replace "your_actual_api_key_here" with your actual API key
+# VirusTotal API key
+API_KEY = "95a364d9897702f78d23b1f2c429fe4f264a136d07312f191e90d8cbfb021f8e"  
 
 def submit_url_to_virustotal(url, api_key):
     headers = {"x-apikey": api_key}
     response = requests.post("https://www.virustotal.com/api/v3/urls", headers=headers, data={"url": url})
     
     if response.status_code == 200:
-        # Extract the ID from the response for retrieving the results
         analysis_id = response.json()['data']['id']
         return analysis_id
     else:
@@ -51,7 +50,6 @@ def get_url_analysis_from_virustotal(analysis_id, api_key):
         return None
 
 def phishing_link_scanner(api_key=None):
-    # Ask the user to input URLs, separated by commas
     user_input = input("Enter URLs separated by commas: ")
     urls = [url.strip() for url in user_input.split(",")]
 
@@ -63,7 +61,6 @@ def phishing_link_scanner(api_key=None):
             if analysis_id:
                 result = get_url_analysis_from_virustotal(analysis_id, api_key)
                 if result and 'data' in result and 'attributes' in result['data']:
-                    # Check if VirusTotal detected any malicious activity
                     if result['data']['attributes']['stats']['malicious'] > 0:
                         print(f"Phishing detected by VirusTotal - {url}")
                     else:
